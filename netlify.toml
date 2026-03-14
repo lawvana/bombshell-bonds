@@ -1,0 +1,28 @@
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from   = "https://www.bombshellbonds.com/*"
+  to     = "https://bombshellbonds.com/:splat"
+  status = 301
+  force  = true
+
+[[redirects]]
+  from = "/intake"
+  to   = "/intake.html"
+  status = 200
+
+[[redirects]]
+  from = "/thank-you"
+  to   = "/thank-you.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

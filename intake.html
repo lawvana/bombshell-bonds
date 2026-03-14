@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Check Property Bond Eligibility | Bombshell Bonds</title>
+<link rel="icon" href="/assets/svg/bombshell-favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--black:#0a0a0a;--dark:#111111;--card:#161616;--border:rgba(255,255,255,.07);--red:#FF3B3B;--red-dim:rgba(255,59,59,.12);--gold:#C49A3C;--gold-light:#DDB96A;--white:#F5F5F5;--muted:rgba(245,245,245,.45);--gray:#6a7a7a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--dark);color:var(--white);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden}
+.progress-wrap{position:fixed;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,.07);z-index:100}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--red),#ff6b6b);transition:width .5s cubic-bezier(.4,0,.2,1);width:0%}
+.header{position:fixed;top:3px;left:0;right:0;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,10,10,.94);backdrop-filter:blur(14px);z-index:99;border-bottom:1px solid var(--border)}
+.header-logo{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.06em;text-decoration:none;color:var(--white)}
+.header-logo .r{color:var(--red)}
+.header-logo .g{color:var(--gold)}
+.header-phone{font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s}
+.header-phone:hover{color:var(--red)}
+.stage{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:90px 24px 60px}
+.screen{display:none;width:100%;max-width:640px;animation:fadeUp .4s cubic-bezier(.4,0,.2,1) forwards}
+.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-18px)}}
+.screen.leaving{animation:fadeOut .26s cubic-bezier(.4,0,.2,1) forwards}
+.step-label{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin-bottom:14px;opacity:.8}
+.question{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,5vw,44px);letter-spacing:.03em;line-height:1.05;margin-bottom:10px;color:var(--white)}
+.sub-text{font-size:14px;color:var(--muted);margin-bottom:34px;line-height:1.65}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice-btn{display:flex;align-items:center;gap:16px;padding:16px 20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);cursor:pointer;transition:all .2s;text-align:left;color:var(--white);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:400;width:100%}
+.choice-btn:hover{background:var(--red-dim);border-color:rgba(255,59,59,.4);transform:translateX(3px)}
+.choice-btn.selected{background:var(--red-dim);border-color:var(--red)}
+.choice-key{width:26px;height:26px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gray);flex-shrink:0;font-family:'DM Mono',monospace;transition:all .2s}
+.choice-btn:hover .choice-key,.choice-btn.selected .choice-key{background:var(--red);border-color:var(--red);color:var(--black)}
+.field-group{display:flex;flex-direction:column;gap:14px;margin-bottom:28px}
+.field-row{display:flex;gap:14px}
+.field-row .field-wrap{flex:1}
+.field-wrap{display:flex;flex-direction:column;gap:7px}
+.field-label{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,245,245,.3)}
+input[type=text],input[type=tel],input[type=email],input[type=number],select{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);padding:13px 15px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--white);outline:none;transition:border-color .2s,background .2s;width:100%;-webkit-appearance:none}
+select option{background:var(--dark);color:var(--white)}
+input:focus,select:focus{border-color:var(--red);background:rgba(255,59,59,.05)}
+input::placeholder{color:rgba(255,255,255,.18)}
+.next-btn{margin-top:26px;display:inline-flex;align-items:center;gap:10px;padding:15px 30px;background:var(--red);color:var(--black);border:none;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s,transform .15s}
+.next-btn:hover{background:#ff5555;transform:translateY(-1px)}
+.next-btn svg{transition:transform .2s}
+.next-btn:hover svg{transform:translateX(4px)}
+.back-btn{background:none;border:none;color:rgba(245,245,245,.28);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;padding:10px 0;margin-top:12px;display:flex;align-items:center;gap:5px;transition:color .2s}
+.back-btn:hover{color:var(--muted)}
+.disq-box{background:rgba(255,59,59,.06);border:1px solid rgba(255,59,59,.3);padding:2.5rem;text-align:center}
+.disq-icon{font-size:2.5rem;margin-bottom:1rem}
+.disq-box h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.03em;margin-bottom:.75rem}
+.disq-box p{font-size:.9rem;color:var(--muted);line-height:1.7;margin-bottom:1.5rem}
+.call-btn{display:inline-flex;align-items:center;gap:.5rem;padding:14px 28px;background:var(--red);color:var(--black);font-weight:700;font-size:15px;text-decoration:none;transition:background .2s}
+.call-btn:hover{background:#ff5555}
+.quote-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,59,59,.25);padding:2.5rem;position:relative;overflow:hidden}
+.quote-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),var(--gold),transparent)}
+.quote-label{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin-bottom:6px;opacity:.8}
+.quote-name{font-size:15px;color:var(--muted);margin-bottom:22px}
+.quote-name strong{color:var(--white)}
+.fee-display{display:flex;align-items:baseline;gap:5px;margin-bottom:6px}
+.fee-dollar{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--red);align-self:flex-start;margin-top:8px}
+.fee-amount{font-family:'Bebas Neue',sans-serif;font-size:5rem;letter-spacing:.02em;color:var(--white);line-height:1}
+.fee-note{font-size:13px;color:rgba(245,245,245,.35);margin-bottom:26px}
+.breakdown{background:rgba(0,0,0,.2);padding:18px;margin-bottom:22px}
+.breakdown-title{font-family:'DM Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red);margin-bottom:12px;opacity:.7}
+.breakdown-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.breakdown-row:last-child{border-bottom:none}
+.breakdown-row .item{color:rgba(245,245,245,.45)}
+.breakdown-row .amt{color:var(--white);font-weight:500}
+.breakdown-row .amt.gold{color:var(--gold)}
+.breakdown-row.total .item{color:var(--white);font-weight:600;font-size:14px}
+.includes{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.include-item{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--muted)}
+.include-item svg{color:var(--red);flex-shrink:0}
+.hire-btn{display:block;width:100%;padding:17px;background:var(--red);color:var(--black);border:none;font-family:'DM Sans',sans-serif;font-size:17px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;transition:background .2s}
+.hire-btn:hover{background:#ff5555}
+.disclaimer{font-size:11px;color:rgba(245,245,245,.2);text-align:center;margin-top:16px;line-height:1.65}
+.welcome-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,59,59,.1);border:1px solid rgba(255,59,59,.25);padding:6px 14px;font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:var(--red);letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px}
+.welcome-badge span{width:6px;height:6px;background:var(--red);border-radius:50%;display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.welcome-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,8vw,6rem);letter-spacing:.03em;line-height:.95;margin-bottom:1rem}
+.welcome-title .r{color:var(--red)}
+.welcome-title .g{color:var(--gold)}
+.welcome-sub{font-size:16px;color:var(--muted);line-height:1.7;max-width:500px;margin-bottom:32px}
+.time-note{font-size:12px;color:rgba(245,245,245,.28);margin-top:12px;display:flex;align-items:center;gap:6px}
+.warn-box{background:rgba(196,154,60,.08);border:1px solid rgba(196,154,60,.25);padding:14px 18px;font-size:13px;color:rgba(196,154,60,.85);margin-top:16px;line-height:1.65;display:none}
+@media(max-width:600px){.header{padding:12px 18px}.stage{padding:80px 18px 50px}.quote-card{padding:20px 16px}.fee-amount{font-size:3.5rem}.field-row{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<div class="progress-wrap"><div class="progress-fill" id="progressBar"></div></div>
+
+<header class="header">
+  <a href="/" class="header-logo"><span class="r">BOMBSHELL</span>&nbsp;<span class="g">BONDS</span></a>
+  <a href="tel:9198318901" class="header-phone">☎ (919) 831-8901 · 24/7</a>
+</header>
+
+<main class="stage">
+
+  <!-- S0: WELCOME -->
+  <div class="screen active" id="s0">
+    <div class="welcome-badge"><span></span> Free · Available 24/7</div>
+    <div class="welcome-title">
+      <div>CHECK YOUR</div>
+      <div class="r">ELIGIBILITY</div>
+      <div class="g">NOW.</div>
+    </div>
+    <p class="welcome-sub">Answer a few quick questions about the property and the bond. We'll tell you if it qualifies and give you a flat-fee quote — no phone call required.</p>
+    <button class="next-btn" onclick="goTo(1)">
+      Start Eligibility Check
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+    <div class="time-note">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Takes about 3 minutes
+    </div>
+  </div>
+
+  <!-- S1: COURT TYPE -->
+  <div class="screen" id="s1">
+    <div class="step-label">Step 1 of 6</div>
+    <div class="question">Which court is the bond in?</div>
+    <p class="sub-text">State and federal courts have different property bond procedures and requirements.</p>
+    <div class="choices">
+      <button class="choice-btn" onclick="select(this,'court','district',2)"><span class="choice-key">A</span>NC District Court (traffic, misdemeanor)</button>
+      <button class="choice-btn" onclick="select(this,'court','superior',2)"><span class="choice-key">B</span>NC Superior Court (felony)</button>
+      <button class="choice-btn" onclick="select(this,'court','federal',2)"><span class="choice-key">C</span>Federal Court (EDNC or MDNC)</button>
+      <button class="choice-btn" onclick="select(this,'court','unknown',2)"><span class="choice-key">D</span>Not sure</button>
+    </div>
+    <button class="back-btn" onclick="goTo(0)">← Back</button>
+  </div>
+
+  <!-- S2: BOND AMOUNT -->
+  <div class="screen" id="s2">
+    <div class="step-label">Step 2 of 6</div>
+    <div class="question">What is the bond amount?</div>
+    <p class="sub-text">The total bail/bond amount set by the judge. This determines the equity required.</p>
+    <div class="field-group">
+      <div class="field-wrap">
+        <div class="field-label">Bond Amount ($)</div>
+        <input type="number" id="bondAmount" placeholder="e.g. 50000" oninput="data.bondAmount=parseInt(this.value)||0">
+      </div>
+    </div>
+    <button class="next-btn" onclick="nextIfSet('bondAmount',3)">
+      Continue
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+    <button class="back-btn" onclick="goTo(1)">← Back</button>
+  </div>
+
+  <!-- S3: PROPERTY TYPE -->
+  <div class="screen" id="s3">
+    <div class="step-label">Step 3 of 6</div>
+    <div class="question">What type of property?</div>
+    <p class="sub-text">All types of NC real property may qualify. Location matters.</p>
+    <div class="choices">
+      <button class="choice-btn" onclick="select(this,'propType','residential',4)"><span class="choice-key">A</span>Residential (home, condo, townhome)</button>
+      <button class="choice-btn" onclick="select(this,'propType','land',4)"><span class="choice-key">B</span>Land / vacant lot</button>
+      <button class="choice-btn" onclick="select(this,'propType','commercial',4)"><span class="choice-key">C</span>Commercial property</button>
+      <button class="choice-btn" onclick="select(this,'propType','out-of-state','disq-oos')"><span class="choice-key">D</span>Out-of-state property</button>
+    </div>
+    <button class="back-btn" onclick="goTo(2)">← Back</button>
+  </div>
+
+  <!-- S4: EQUITY -->
+  <div class="screen" id="s4">
+    <div class="step-label">Step 4 of 6</div>
+    <div class="question">Estimated property value and mortgage balance?</div>
+    <p class="sub-text">We need to estimate available equity. Approximate numbers are fine — we'll verify during the title examination.</p>
+    <div class="field-group">
+      <div class="field-wrap">
+        <div class="field-label">Estimated Property Value ($)</div>
+        <input type="number" id="propValue" placeholder="e.g. 300000" oninput="data.propValue=parseInt(this.value)||0;checkEquity()">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Outstanding Mortgage Balance ($)</div>
+        <input type="number" id="mortgageBalance" placeholder="e.g. 150000 (enter 0 if none)" oninput="data.mortgageBalance=parseInt(this.value)||0;checkEquity()">
+      </div>
+    </div>
+    <div class="warn-box" id="equityWarn">⚠ Based on these numbers, available equity may be close to the required minimum (150% of bond amount). We'll verify during the title exam — call us to discuss.</div>
+    <button class="next-btn" onclick="nextIfSet('propValue',5)">
+      Continue
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+    <button class="back-btn" onclick="goTo(3)">← Back</button>
+  </div>
+
+  <!-- S5: RELATIONSHIP -->
+  <div class="screen" id="s5">
+    <div class="step-label">Step 5 of 6</div>
+    <div class="question">Who is the property owner?</div>
+    <p class="sub-text">The property owner becomes the surety on the bond. All owners must consent.</p>
+    <div class="choices">
+      <button class="choice-btn" onclick="select(this,'owner','self',6)"><span class="choice-key">A</span>I own the property — I'm helping myself</button>
+      <button class="choice-btn" onclick="select(this,'owner','family',6)"><span class="choice-key">B</span>Family member helping the defendant</button>
+      <button class="choice-btn" onclick="select(this,'owner','friend',6)"><span class="choice-key">C</span>Friend or other person helping the defendant</button>
+      <button class="choice-btn" onclick="select(this,'owner','attorney',6)"><span class="choice-key">D</span>I'm an attorney or third party</button>
+    </div>
+    <button class="back-btn" onclick="goTo(4)">← Back</button>
+  </div>
+
+  <!-- S6: CONTACT -->
+  <div class="screen" id="s6">
+    <div class="step-label">Step 6 of 6</div>
+    <div class="question">Who should we contact?</div>
+    <p class="sub-text">We'll review your answers and call you with a flat-fee quote — usually within the hour.</p>
+    <div class="field-group">
+      <div class="field-row">
+        <div class="field-wrap">
+          <div class="field-label">First Name</div>
+          <input type="text" id="firstName" placeholder="First" oninput="data.firstName=this.value">
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Last Name</div>
+          <input type="text" id="lastName" placeholder="Last" oninput="data.lastName=this.value">
+        </div>
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Cell Phone (Best number to reach you)</div>
+        <input type="tel" id="phone" placeholder="(919) 555-0100" oninput="data.phone=this.value">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Email</div>
+        <input type="email" id="email" placeholder="you@email.com" oninput="data.email=this.value">
+      </div>
+    </div>
+    <button class="next-btn" onclick="submitAndShowQuote()">
+      See My Quote
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+    <button class="back-btn" onclick="goTo(5)">← Back</button>
+  </div>
+
+  <!-- QUOTE -->
+  <div class="screen" id="s-quote">
+    <div class="step-label">Your Property Bond Quote</div>
+    <div class="question" style="margin-bottom:24px">Here's your flat-fee quote.</div>
+    <div class="quote-card">
+      <div class="quote-label">Prepared for</div>
+      <div class="quote-name" id="quoteName"></div>
+      <div class="fee-display">
+        <div class="fee-dollar">$</div>
+        <div class="fee-amount" id="feeAmount">0</div>
+      </div>
+      <div class="fee-note" id="feeNote">Flat fee — no hourly billing, no surprises.</div>
+      <div class="breakdown" id="feeBreakdown"></div>
+      <div class="includes">
+        <div class="include-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Property title examination &amp; equity verification</div>
+        <div class="include-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Bond petition drafting &amp; filing</div>
+        <div class="include-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Attorney appearance at bond hearing</div>
+        <div class="include-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Court date tracking &amp; reminders</div>
+        <div class="include-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Lien release coordination at case conclusion</div>
+      </div>
+      <a href="tel:9198318901" class="hire-btn">Call (919) 831-8901 to Get Started →</a>
+    </div>
+    <p class="disclaimer">Quote based on information provided. Valid 72 hours. Final fee confirmed after title examination. Barker Richardson, PLLC · LawVana.com · Licensed in NC.</p>
+  </div>
+
+  <!-- DISQUALIFY: OUT OF STATE -->
+  <div class="screen" id="disq-oos">
+    <div class="disq-box">
+      <div class="disq-icon">📍</div>
+      <h2>Out-of-State Property</h2>
+      <p>NC courts require the property used for a bond to be located in North Carolina. Out-of-state property generally cannot be used for NC court bonds.</p>
+      <p>However, if there are other options — co-owned NC property, cash bond alternatives — we can discuss those directly.</p>
+      <a href="tel:9198318901" class="call-btn">📞 (919) 831-8901</a>
+    </div>
+    <button class="back-btn" style="margin:20px auto 0;display:flex;justify-content:center" onclick="goTo(3)">← Change my answer</button>
+  </div>
+
+</main>
+
+<script>
+const data={court:null,bondAmount:0,propType:null,propValue:0,mortgageBalance:0,owner:null,firstName:'',lastName:'',phone:'',email:''};
+let currentScreen='s0';
+const TOTAL=6;
+
+function updateProgress(id){
+  const map={s0:0,s1:1,s2:2,s3:3,s4:4,s5:5,s6:6};
+  document.getElementById('progressBar').style.width=((map[id]||0)/TOTAL*100)+'%';
+}
+function goTo(n){
+  const id=typeof n==='number'?'s'+n:n;
+  const cur=document.getElementById(currentScreen);
+  cur.classList.add('leaving');
+  setTimeout(()=>{
+    cur.classList.remove('active','leaving');
+    const next=document.getElementById(id);
+    next.classList.add('active');
+    currentScreen=id;
+    updateProgress(id);
+    window.scrollTo({top:0,behavior:'smooth'});
+  },250);
+}
+function select(btn,field,value,next){
+  btn.closest('.choices').querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  data[field]=value;
+  setTimeout(()=>goTo(next),300);
+}
+function nextIfSet(field,next){
+  if(!data[field]){alert('Please enter a value before continuing.');return;}
+  goTo(next);
+}
+function checkEquity(){
+  if(!data.bondAmount||!data.propValue) return;
+  const equity=data.propValue-(data.mortgageBalance||0);
+  const required=data.bondAmount*1.5;
+  const warn=document.getElementById('equityWarn');
+  warn.style.display=(equity<required&&equity>0)?'block':'none';
+}
+function calculateFee(){
+  const bond=data.bondAmount||0;
+  let base=0;
+  const breakdown=[];
+  if(bond<=25000){base=1200;breakdown.push({item:'Property Bond — Bond Amount up to $25,000',amt:1200});}
+  else if(bond<=50000){base=1500;breakdown.push({item:'Property Bond — Bond Amount $25,001–$50,000',amt:1500});}
+  else if(bond<=100000){base=2000;breakdown.push({item:'Property Bond — Bond Amount $50,001–$100,000',amt:2000});}
+  else{base=2500;breakdown.push({item:'Property Bond — Bond Amount over $100,000',amt:2500});}
+  if(data.court==='federal'){base+=500;breakdown.push({item:'Federal Court Supplement (EDNC/MDNC)',amt:500});}
+  breakdown.push({item:'TOTAL FLAT FEE',amt:base,total:true});
+  return{total:base,breakdown};
+}
+function submitAndShowQuote(){
+  if(!data.firstName||!data.phone){alert('Please enter your name and phone number.');return;}
+  const{total,breakdown}=calculateFee();
+  document.getElementById('quoteName').innerHTML=`<strong>${data.firstName} ${data.lastName}</strong> &nbsp;·&nbsp; ${data.phone}`;
+  document.getElementById('feeAmount').textContent=total.toLocaleString();
+  let bd='<div class="breakdown-title">Fee Breakdown</div>';
+  breakdown.forEach(r=>{bd+=`<div class="breakdown-row${r.total?' total':''}"><span class="item">${r.item}</span><span class="amt${r.total?' gold':''}">\$${r.amt.toLocaleString()}</span></div>`;});
+  document.getElementById('feeBreakdown').innerHTML=bd;
+  goTo('s-quote');
+}
+</script>
+</body>
+</html>
