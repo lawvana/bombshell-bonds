@@ -137,14 +137,14 @@ input::placeholder{color:rgba(255,255,255,.18)}
   <div class="screen" id="s2">
     <div class="step-label">Step 2 of 6</div>
     <div class="question">What is the bond amount?</div>
-    <p class="sub-text">The total bail/bond amount set by the judge. This determines the equity required.</p>
+    <p class="sub-text">The total bail/bond amount set by the judge. Minimum bond we handle is $25,000.</p>
     <div class="field-group">
       <div class="field-wrap">
         <div class="field-label">Bond Amount ($)</div>
-        <input type="number" id="bondAmount" placeholder="e.g. 50000" oninput="data.bondAmount=parseInt(this.value)||0">
+        <input type="number" id="bondAmount" placeholder="e.g. 50000" min="25000" oninput="data.bondAmount=parseInt(this.value)||0">
       </div>
     </div>
-    <button class="next-btn" onclick="nextIfSet('bondAmount',3)">
+    <button class="next-btn" onclick="checkBondAndContinue()">
       Continue
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
     </button>
@@ -256,7 +256,7 @@ input::placeholder{color:rgba(255,255,255,.18)}
       </div>
       <a href="tel:9198318901" class="hire-btn">Call (919) 831-8901 to Get Started →</a>
     </div>
-    <p class="disclaimer">Quote based on information provided. Valid 72 hours. Final fee confirmed after title examination. Barker Richardson, PLLC · LawVana.com · Licensed in NC.</p>
+    <p class="disclaimer">This is a fee estimate based on the sliding scale and information provided. All fees are confirmed at consultation after title examination. Out-of-county and multiple-property matters require a direct call. Barker Richardson, PLLC · LawVana.com · Licensed in NC.</p>
   </div>
 
   <!-- DISQUALIFY: OUT OF STATE -->
@@ -269,6 +269,17 @@ input::placeholder{color:rgba(255,255,255,.18)}
       <a href="tel:9198318901" class="call-btn">📞 (919) 831-8901</a>
     </div>
     <button class="back-btn" style="margin:20px auto 0;display:flex;justify-content:center" onclick="goTo(3)">← Change my answer</button>
+  </div>
+
+  <!-- DISQUALIFY: BOND UNDER $25K -->
+  <div class="screen" id="disq-small">
+    <div class="disq-box">
+      <div class="disq-icon">📞</div>
+      <h2>Call Us Directly</h2>
+      <p>We handle property bonds for bail amounts of <strong>$25,000 or higher</strong>. For bonds under $25,000, please call us directly — we may still be able to help depending on your specific situation.</p>
+      <a href="tel:9198318901" class="call-btn">📞 (919) 831-8901</a>
+    </div>
+    <button class="back-btn" style="margin:20px auto 0;display:flex;justify-content:center" onclick="goTo(2)">← Change my answer</button>
   </div>
 
 </main>
@@ -305,6 +316,10 @@ function nextIfSet(field,next){
   if(!data[field]){alert('Please enter a value before continuing.');return;}
   goTo(next);
 }
+function checkBondAndContinue(){
+  if(!data.bondAmount||data.bondAmount<25000){goTo('disq-small');return;}
+  goTo(3);
+}
 function checkEquity(){
   if(!data.bondAmount||!data.propValue) return;
   const equity=data.propValue-(data.mortgageBalance||0);
@@ -313,16 +328,39 @@ function checkEquity(){
   warn.style.display=(equity<required&&equity>0)?'block':'none';
 }
 function calculateFee(){
-  const bond=data.bondAmount||0;
-  let base=0;
-  const breakdown=[];
-  if(bond<=25000){base=1200;breakdown.push({item:'Property Bond — Bond Amount up to $25,000',amt:1200});}
-  else if(bond<=50000){base=1500;breakdown.push({item:'Property Bond — Bond Amount $25,001–$50,000',amt:1500});}
-  else if(bond<=100000){base=2000;breakdown.push({item:'Property Bond — Bond Amount $50,001–$100,000',amt:2000});}
-  else{base=2500;breakdown.push({item:'Property Bond — Bond Amount over $100,000',amt:2500});}
-  if(data.court==='federal'){base+=500;breakdown.push({item:'Federal Court Supplement (EDNC/MDNC)',amt:500});}
-  breakdown.push({item:'TOTAL FLAT FEE',amt:base,total:true});
-  return{total:base,breakdown};
+  const bond = data.bondAmount || 0;
+  let fee = 0;
+  const breakdown = [];
+
+  // Tier 1: 8% on first $25K
+  const t1 = Math.min(bond, 25000);
+  fee += t1 * 0.08;
+  breakdown.push({item: 'First $25,000 @ 8%', amt: Math.round(t1 * 0.08)});
+
+  // Tier 2: 6% on $25K–$50K
+  if (bond > 25000) {
+    const t2 = Math.min(bond - 25000, 25000);
+    fee += t2 * 0.06;
+    breakdown.push({item: 'Next $25,000 ($25K–$50K) @ 6%', amt: Math.round(t2 * 0.06)});
+  }
+
+  // Tier 3: 4% on $50K–$100K
+  if (bond > 50000) {
+    const t3 = Math.min(bond - 50000, 50000);
+    fee += t3 * 0.04;
+    breakdown.push({item: 'Next $50,000 ($50K–$100K) @ 4%', amt: Math.round(t3 * 0.04)});
+  }
+
+  // Tier 4: 3% on everything over $100K
+  if (bond > 100000) {
+    const t4 = bond - 100000;
+    fee += t4 * 0.03;
+    breakdown.push({item: 'Amount over $100,000 @ 3%', amt: Math.round(t4 * 0.03)});
+  }
+
+  const total = Math.round(fee);
+  breakdown.push({item: 'ESTIMATED FEE', amt: total, total: true});
+  return {total, breakdown};
 }
 function submitAndShowQuote(){
   if(!data.firstName||!data.phone){alert('Please enter your name and phone number.');return;}
